@@ -1,22 +1,10 @@
 #!/usr/bin/env python3
 
-import os
 import re
 import sys
-import json
-import time
 import click
-import jinja2
-import shutil
-import pickle
-import hashlib
-import logging
-import requests
-import tempfile
-import itertools
-import subprocess
+import periodical
 
-from xdg.BaseDirectory import save_cache_path
 
 CONFIG = (
     {"name": "Portrait of the week", "ignore_title": True},
@@ -75,11 +63,6 @@ for idx, x in enumerate(CONFIG):
     x["idx"] = idx
     CONFIG_BY_NAME[x.get("name")] = x
 
-re_widont_html = re.compile(
-    r"([^<>\s])\s+([^<>\s]+\s*)(</?(?:address|blockquote|br|dd|div|dt|fieldset|form|h[1-6]|li|noscript|p|td|th)[^>]*>|$)",
-    re.IGNORECASE,
-)
-
 
 @click.command()
 @click.argument("api_key", default="bltf04078f3cf7a9c30")
@@ -104,14 +87,17 @@ def main(*args, **kwargs):
     return SpectatorToMobi(*args, **kwargs).main()
 
 
-class SpectatorToMobi:
+class SpectatorToMobi(periodical.BaseToMobi):
+    NAME = "spectator-to-mobi"
+    TITLE = "The Spectator"
+    PREFIX = "The_Spectator"
+    BASE_URL = "https://spectator.co.uk"
+
     def __init__(
         self, api_key, access_token, filename, keep_html, verbosity,
     ):
-        self.epoch = time.time() - 3600
-        self.session = requests.Session()
+        super().__init__()
 
-        self.base_url = "https://spectator.co.uk"
         self.api_key = api_key
         self.access_token = access_token
 
@@ -121,46 +107,8 @@ class SpectatorToMobi:
 
         self._parsed = None
 
-    def main(self):
-        self.context = {"articles": []}
-
-        self.setup_logging()
-
-        try:
-            self.handle_base()
-        except Exception:
-            if self._parsed:
-                with tempfile.NamedTemporaryFile(
-                    prefix="spectator-to-mobi-",
-                    mode="w",
-                    suffix=".json",
-                    delete=False,
-                ) as f:
-                    json.dump(self._parsed, f, indent=2)
-                    self.log.exception(
-                        "Exception caught; writing last output to %s", f.name
-                    )
-            raise
-
-        t = tempfile.mkdtemp(prefix="spectator-to-mobi-")
-
-        try:
-            self.generate_mobi(t)
-        finally:
-            if self.keep_html:
-                self.log.info("Keeping HTML in %s/index.html", t)
-                self.log.debug("Opening %s/index.html with xdg-open", t)
-                try:
-                    subprocess.call(("xdg-open", "{}/index.html".format(t)))
-                except FileNotFoundError:
-                    pass
-            else:
-                shutil.rmtree(t, ignore_errors=True)
-
-        return 0
-
     def handle_base(self):
-        self.log.info("Starting conversion of %s", self.base_url)
+        self.log.info("Starting conversion of %s", self.BASE_URL)
 
         data = self.parse(
             "/content_types/magazine_issue/entries?environment=live&desc=issue_date&limit=1&only[BASE][]=url"
@@ -177,9 +125,9 @@ class SpectatorToMobi:
             + "%22%20},%20%22_content_type_uid%22:%20%22magazine_issue%22},%20%22_content_type_uid%22:%20%22article%22}"
         )
 
-        self.context["cover"] = data["entries"][0][
-            "magazine_content_production_only"
-        ]["magazine_issue"][0]["magazine_cover"]["url"]
+        self.context["cover"] = data["entries"][0]["magazine_content_production_only"][
+            "magazine_issue"
+        ][0]["magazine_cover"]["url"]
         self.log.debug("Found cover at %s", self.context["cover"])
 
         for x in data["entries"]:
@@ -205,14 +153,14 @@ class SpectatorToMobi:
         byline = data["byline"]
         byline = byline.replace(", says {}".format(author), ".")
 
-        subsection = data["magazine_content_production_only"][
-            "magazine_subsection"
-        ][0]["title"]
+        subsection = data["magazine_content_production_only"]["magazine_subsection"][0][
+            "title"
+        ]
 
         try:
-            image = data["hero_image"][0]["url"]
+            hero_image = self.handle_image(data["hero_image"][0]["url"])
         except IndexError:
-            image = None  # Hero images are optional
+            hero_image = None
 
         # Subsection
 
@@ -262,10 +210,7 @@ class SpectatorToMobi:
                 x["books_title"], x["books_author"], body
             )
 
-        def cb_widont(m):
-            return "{}&nbsp;{}{}".format(*m.groups())
-
-        body = re_widont_html.sub(cb_widont, body)
+        body = periodical.widont(body)
 
         for pattern, repl in ((r"\s*CSH</p>", ""),):
             body = re.sub(pattern, repl, body)
@@ -275,75 +220,12 @@ class SpectatorToMobi:
             "byline": byline,
             "author": author,
             "url": "https://www.spectator.co.uk{}".format(data["url"]),
-            "idx": len(self.context["articles"]),
             "body": body,
-            "image": image,
+            "hero_image": hero_image,
             "subsection": subsection,
         }
 
         self.context["articles"].append(data)
-
-    def generate_mobi(self, tempdir):
-        self.log.info("Generating .mobi in %s", tempdir)
-
-        with open(os.path.join(tempdir, "context.json"), "w") as f:
-            json.dump(self.context, f, indent=2)
-
-        assert self.context[
-            "articles"
-        ], "No articles downloaded; please check {}".format(self.base_url)
-
-        template_dir = os.path.join(os.path.dirname(__file__), "templates")
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(template_dir))
-
-        self.context["tempdir"] = tempdir
-        self.context["grouped"] = [
-            (x, list(y))
-            for x, y in itertools.groupby(
-                self.context["articles"], lambda x: x["subsection"]
-            )
-        ]
-
-        self.save_image_to(
-            self.context["cover"], os.path.join(tempdir, "cover.jpg")
-        )
-
-        for x in ("index.html", "toc.html", "style.css"):
-            val = env.get_template(x).render(**self.context)
-            with open(os.path.join(tempdir, x), "w") as f:
-                f.write(val)
-
-        # Download article images
-        for x in self.context["articles"]:
-            if x["image"] is None:
-                continue
-
-            target = os.path.join(tempdir, "{}.jpg".format(x["idx"]))
-            self.save_image_to(x["image"], target)
-
-        # Hide kindlegen output by default
-        stdout, stderr = subprocess.PIPE, subprocess.PIPE
-        if self.verbosity >= 2:
-            stdout, stderr = None, None
-
-        subprocess.call(
-            (
-                "kindlegen/kindlegen",
-                "-verbose",
-                os.path.join(tempdir, "index.html"),
-            ),
-            stdout=stdout,
-            stderr=stderr,
-        )
-
-        if not self.filename:
-            self.filename = "The_Spectator_{}.mobi".format(
-                self.context["date"].replace(" ", "_")
-            )
-
-        self.log.info("Saving output to %s", self.filename)
-
-        shutil.move(os.path.join(tempdir, "index.mobi"), self.filename)
 
     def parse(self, url, **kwargs):
         url = "https://cdn.contentstack.io/v3{}".format(url)
@@ -353,90 +235,9 @@ class SpectatorToMobi:
         return self._parsed
 
     def get(self, url, **kwargs):
-        kwargs.update(
-            {"api_key": self.api_key, "access_token": self.access_token}
-        )
+        kwargs.update({"api_key": self.api_key, "access_token": self.access_token})
 
-        h = hashlib.sha1()
-        h.update(url.encode("utf-8"))
-        for k, v in kwargs.items():
-            h.update(k.encode("utf-8"))
-            h.update(v.encode("utf-8"))
-
-        filename = os.path.join(
-            save_cache_path("spectator-to-mobi"), h.hexdigest()
-        )
-
-        if (
-            os.path.exists(filename)
-            and os.path.getmtime(filename) > self.epoch
-        ):
-            with open(filename, "rb") as f:
-                return pickle.load(f)
-
-        response = self.session.get(
-            url, headers={"User-agent": "Mozilla/5.0"}, params=kwargs
-        )
-        response.raise_for_status()
-
-        with open(filename, "wb") as f:
-            pickle.dump(response, f)
-
-        return response
-
-    def save_image_to(self, url, target):
-        self.log.debug("Downloading %s to %s", url, target)
-
-        with open(target, "wb") as f:
-            for x in self.get(url).iter_content(chunk_size=128):
-                f.write(x)
-
-        self.log.debug("Resizing and resampling %s", target)
-        subprocess.check_call(
-            (
-                "convert",
-                target,
-                "-resize",
-                "800x",
-                "-set",
-                "colorspace",
-                "Gray",
-                "-separate",
-                "-average",
-                "-quality",
-                "60%",
-                target,
-            )
-        )
-
-    def setup_logging(self):
-        self.log = logging.getLogger()
-        self.log.setLevel(
-            {0: logging.WARNING, 1: logging.INFO, 2: logging.DEBUG}[
-                self.verbosity
-            ]
-        )
-
-        handler = logging.StreamHandler(sys.stderr)
-        handler.setFormatter(
-            logging.Formatter("%(asctime).19s %(levelname).1s %(message)s")
-        )
-        self.log.addHandler(handler)
-
-    def json_find(self, needle, haystack):
-        if not isinstance(haystack, dict):
-            return
-
-        for k, v in haystack.items():
-            if k == needle:
-                yield v
-
-            elif isinstance(v, dict):
-                for x in self.json_find(needle, v):
-                    yield x
-
-    def json_find_first(self, needle, haystack):
-        return list(self.json_find(needle, haystack))[0]
+        return super().get(url, **kwargs)
 
 
 if __name__ == "__main__":

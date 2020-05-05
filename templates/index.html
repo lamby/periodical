@@ -1,12 +1,12 @@
 <html>
 <head>
-  <title>The Spectator ({{ date }})</title>
+  <title>{{ title }} ({{ date }})</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta content="{{ tempdir }}/cover.jpg" name="cover">
   <link rel="stylesheet" href="{{ tempdir }}/style.css"  type="text/css" />
 </head>
 <body>
-  <h1>The Spectator ({{ date }})</h1>
+  <h1>{{ title }} ({{ date }})</h1>
 
   <nav epub:type="landmarks" class="hidden-tag" hidden="hidden">
     <ol>
@@ -59,8 +59,8 @@
       <h4>{{ article.author }}</h4>
     {% endif %}
 
-    {% if article.image %}
-      <img src="{{ article.idx }}.jpg" width="45%">
+    {% if article.hero_image %}
+      <img src="{{ article.hero_image }}" width="45%">
     {% endif %}
 
     {{ article.body }}
