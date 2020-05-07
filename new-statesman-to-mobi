@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+
+import re
+import sys
+import click
+import periodical
+
+from lxml import html, etree
+
+
+@click.command()
+@click.option(
+    "--filename", default="", help="target filename (default: auto-generated)"
+)
+@click.option(
+    "--keep-html",
+    is_flag=True,
+    default=False,
+    help="Keep (and print) the HTML sources directory",
+)
+@click.option(
+    "--verbosity",
+    type=int,
+    default=1,
+    help="Verbosity level; 0=minimal output, 1=normal output, "
+    "2=verbose output, 3=very verbose output",
+)
+def main(*args, **kwargs):
+    return NewStatesmanToMobi(*args, **kwargs).main()
+
+
+class NewStatesmanToMobi(periodical.BaseToMobi):
+    NAME = "new-statesman-to-mobi"
+    TITLE = "The New Statesman Books"
+    PREFIX = "The_New_Statesman"
+    BASE_URL = "https://www.newstatesman.com"
+
+    def __init__(
+        self, filename, keep_html, verbosity,
+    ):
+        super().__init__()
+
+        self.filename = filename
+        self.keep_html = keep_html
+        self.verbosity = verbosity
+
+    def handle_base(self):
+        base = self.get(f"{self.BASE_URL}/magazine").content
+        root = html.fromstring(base)
+
+        subsections = root.cssselect(".article-list>li")
+
+        self.context["date"] = root.cssselect(".primary-content div")[0].text.strip()
+        self.context["cover"] = root.cssselect(".field-name-field-magazine-cover img")[
+            0
+        ].attrib["src"]
+
+        for x in subsections:
+            subsection = x.cssselect("h2")[0].text
+
+            for y in x.cssselect("h2 a"):
+                self.handle_article(subsection, y.attrib["href"])
+
+    def handle_article(self, subsection, url):
+        url = f"{self.BASE_URL}{url}"
+
+        base = self.get(url).content
+        root = html.fromstring(base)
+
+        # Title
+        title = root.cssselect("meta[property=og\\:title]")[0].attrib["content"].strip()
+        if title.startswith("Letter of the week: "):
+            title = "Letters"
+            subsection = title
+        if title.startswith("Leader: "):
+            title = title.replace("Leader: ", "")
+            subsection = "Leader"
+
+        byline = root.cssselect("meta[name=abstract]")[0].attrib["content"].strip()
+
+        author = root.cssselect(".author-byline")[0].text_content()
+        author = author.strip()
+        for x in ("By: ", "By ", "New Statesman"):
+            author = author.replace(x, "")
+
+        hero_image = self.handle_image(
+            root.cssselect(
+                ".article-image img[typeof=foaf\\:Image], .featured-image img[typeof=foaf\\:Image], .article-featured-image img[typeof=foaf\\:Image]"
+            )[0].attrib["src"]
+        )
+
+        if subsection in {"Critics", "Backpages"}:
+            subsection = root.cssselect(".article-category a")[0].text_content()
+
+        if subsection == "Q&A":
+            title = title.replace(" Q&A:", ":")
+
+        body = etree.tostring(
+            root.cssselect("div.content .field-name-body .field-items")[0]
+        ).decode("utf-8")
+
+        body = re.sub(r"<iframe[^>]*>", "", body)
+        body = re.sub(r">\*\*+<", "><hr/><", body)
+
+        def image_cb(m):
+            url = self.handle_image(m.group(1))
+
+            return f'<img src="{url}">'
+
+        body = re.sub(r'<img [^>]*src="([^"]+)"([^>]+)>', image_cb, body)
+
+        self.context["articles"].append(
+            {
+                "url": url,
+                "byline": byline,
+                "subsection": subsection,
+                "title": title,
+                "author": author,
+                "hero_image": hero_image,
+                "body": body,
+            },
+        )
+
+
+if __name__ == "__main__":
+    sys.exit(main())
