@@ -45,7 +45,7 @@ class LRBToMobi(periodical.BaseToMobi):
         self.verbosity = verbosity
 
     def handle_base(self):
-        base = self.get("{}/the-paper".format(self.BASE_URL)).content
+        base = self.get(f"{self.BASE_URL}/the-paper").content
         root = html.fromstring(base)
 
         # Parse latest issue link
@@ -53,7 +53,7 @@ class LRBToMobi(periodical.BaseToMobi):
         latest = elem.attrib["href"]
 
         # Get latest issue
-        base = self.get("{}{}".format(self.BASE_URL, latest)).content
+        base = self.get(f"{self.BASE_URL}/{latest}").content
         root = html.fromstring(base)
 
         # Parse date
@@ -73,7 +73,7 @@ class LRBToMobi(periodical.BaseToMobi):
             self.handle_article(x)
 
     def handle_article(self, elem):
-        url = "{}{}".format(self.BASE_URL, elem.attrib["href"])
+        url = f"{self.BASE_URL}{elem.attrib['href']}"
 
         base = self.get(url).content
         root = html.fromstring(base)
@@ -90,17 +90,15 @@ class LRBToMobi(periodical.BaseToMobi):
 
         # LRB-specific
         body = body.replace("<h2 ", "<h3 ")
-        body = body.replace('a href="/', 'a href="{}/'.format(self.BASE_URL))
+        body = body.replace('a href="/', f'a href="{self.BASE_URL}/')
 
         # Images
         def image_cb(m):
-            url = "{}/{}".format(self.BASE_URL, m.group(1))
+            url = f"{self.BASE_URL}/{m.group(1)}"
 
-            return '<img src="{}'.format(self.handle_image(url))
+            return f'<img src="{self.handle_image(url)}'
 
         body = re.sub(r'<img src="" data-appsrc="/([^"]+)', image_cb, body)
-
-        body = periodical.widont(body)
 
         self.context["articles"].append(
             {

@@ -210,8 +210,6 @@ class SpectatorToMobi(periodical.BaseToMobi):
                 x["books_title"], x["books_author"], body
             )
 
-        body = periodical.widont(body)
-
         for pattern, repl in ((r"\s*CSH</p>", ""),):
             body = re.sub(pattern, repl, body)
 

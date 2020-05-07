@@ -5,3 +5,13 @@ h1, h2, h3, h4 {
 blockquote {
   font-style: italic;
 }
+
+hr {
+    border: none;
+}
+
+hr::before {
+    content: '§';
+    display: block;
+    text-align: center;
+}

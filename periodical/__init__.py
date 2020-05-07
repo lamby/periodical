@@ -43,6 +43,7 @@ class BaseToMobi:
 
         for idx, x in enumerate(self.context["articles"]):
             x["idx"] = idx
+            x["body"] = widont(x["body"])
 
         t = tempfile.mkdtemp(prefix="{}-".format(self.PREFIX))
 
