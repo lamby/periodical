@@ -31,7 +31,7 @@ def main(*args, **kwargs):
 
 class NewStatesmanToMobi(periodical.BaseToMobi):
     NAME = "new-statesman-to-mobi"
-    TITLE = "The New Statesman Books"
+    TITLE = "The New Statesman"
     PREFIX = "The_New_Statesman"
     BASE_URL = "https://www.newstatesman.com"
 
@@ -50,7 +50,7 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
         subsections = root.cssselect(".article-list>li")
 
-        self.context["date"] = root.cssselect(".primary-content div")[0].text.strip()
+        self.context["date"] = root.cssselect(".primary-content div")[0].text.strip().lstrip('0')
         self.context["cover"] = root.cssselect(".field-name-field-magazine-cover img")[
             0
         ].attrib["src"]
@@ -75,6 +75,12 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
         if title.startswith("Leader: "):
             title = title.replace("Leader: ", "")
             subsection = "Leader"
+
+        editors_note = "Editor's Note"
+        print(repr(title))
+        if title.startswith(f"{editors_note}: "):
+            title = title[len(editors_note) + 2:]
+            subsection = editors_note
 
         byline = root.cssselect("meta[name=abstract]")[0].attrib["content"].strip()
 
