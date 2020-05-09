@@ -31,7 +31,7 @@ def widont(txt):
 
 class BaseToMobi:
     def __init__(self):
-        self.epoch = time.time() - 3600
+        self.epoch = time.time() - (60 * 60)
         self.session = requests.Session()
 
         self.context = {"articles": [], "title": self.TITLE, "images": []}
