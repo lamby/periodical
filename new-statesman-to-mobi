@@ -77,7 +77,6 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             subsection = "Leader"
 
         editors_note = "Editor's Note"
-        print(repr(title))
         if title.startswith(f"{editors_note}: "):
             title = title[len(editors_note) + 2:]
             subsection = editors_note
