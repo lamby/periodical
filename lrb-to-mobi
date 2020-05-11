@@ -88,17 +88,20 @@ class LRBToMobi(periodical.BaseToMobi):
 
         body = etree.tostring(root.cssselect("div.article-copy")[0]).decode("utf-8")
 
+        # Add reviewing metadata
+
+        for x in reversed(root.cssselect("div.article-reviewed-item")):
+            metadata = etree.tostring(x).decode("utf-8")
+
+            # Strip "Read More" link
+            metadata = re.sub(r'<a href="#Read-More"[^>]*>.*?</a>', "", metadata)
+
+            body = f"{metadata}<br>{body}"
+
         # LRB-specific
         body = body.replace("<h2 ", "<h3 ")
         body = body.replace('a href="/', f'a href="{self.BASE_URL}/')
-
-        # Images
-        def image_cb(m):
-            url = f"{self.BASE_URL}/{m.group(1)}"
-
-            return f'<img src="{self.handle_image(url)}'
-
-        body = re.sub(r'<img src="" data-appsrc="/([^"]+)', image_cb, body)
+        body = body.replace('<img src="" data-appsrc="/', f'<img src="{self.BASE_URL}/')
 
         self.context["articles"].append(
             {

@@ -50,7 +50,9 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
         subsections = root.cssselect(".article-list>li")
 
-        self.context["date"] = root.cssselect(".primary-content div")[0].text.strip().lstrip('0')
+        self.context["date"] = (
+            root.cssselect(".primary-content div")[0].text.strip().lstrip("0")
+        )
         self.context["cover"] = root.cssselect(".field-name-field-magazine-cover img")[
             0
         ].attrib["src"]
@@ -78,7 +80,7 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
         editors_note = "Editor's Note"
         if title.startswith(f"{editors_note}: "):
-            title = title[len(editors_note) + 2:]
+            title = title[len(editors_note) + 2 :]
             subsection = editors_note
 
         byline = root.cssselect("meta[name=abstract]")[0].attrib["content"].strip()
@@ -104,15 +106,8 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             root.cssselect("div.content .field-name-body .field-items")[0]
         ).decode("utf-8")
 
-        body = re.sub(r"<iframe[^>]*>", "", body)
+        # New Statesman specific
         body = re.sub(r">\*\*+<", "><hr/><", body)
-
-        def image_cb(m):
-            url = self.handle_image(m.group(1))
-
-            return f'<img src="{url}">'
-
-        body = re.sub(r'<img [^>]*src="([^"]+)"([^>]+)>', image_cb, body)
 
         self.context["articles"].append(
             {

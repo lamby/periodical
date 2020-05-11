@@ -148,10 +148,10 @@ class SpectatorToMobi(periodical.BaseToMobi):
         title = data["title"]
 
         # If the title starts with the author's name, strip it out.
-        title = title.replace("{}: ".format(author), "")
+        title = title.replace(f"{author}: ", "")
 
         byline = data["byline"]
-        byline = byline.replace(", says {}".format(author), ".")
+        byline = byline.replace(f", says {author}", ".")
 
         subsection = data["magazine_content_production_only"]["magazine_subsection"][0][
             "title"
@@ -199,16 +199,14 @@ class SpectatorToMobi(periodical.BaseToMobi):
         # lower-case letter, to avoid whack-a-mole with various other
         # punctuation.
         if re.search(r"[a-z]$", byline or ""):
-            byline = "{}.".format(byline)
+            byline = f"{byline}."
 
         # Body
         body = data["text_body"]
 
         # Add book metadata
         for x in reversed(data["books_arts"]):
-            body = "<p><em>{}</em> {}</p>{}".format(
-                x["books_title"], x["books_author"], body
-            )
+            body = f"<p><em>{x['books_title']}</em> {x['books_author']}</p>{body}"
 
         for pattern, repl in ((r"\s*CSH</p>", ""),):
             body = re.sub(pattern, repl, body)
@@ -217,7 +215,7 @@ class SpectatorToMobi(periodical.BaseToMobi):
             "title": title,
             "byline": byline,
             "author": author,
-            "url": "https://www.spectator.co.uk{}".format(data["url"]),
+            "url": f"https://www.spectator.co.uk{data['url']}",
             "body": body,
             "hero_image": hero_image,
             "subsection": subsection,
@@ -226,7 +224,7 @@ class SpectatorToMobi(periodical.BaseToMobi):
         self.context["articles"].append(data)
 
     def parse(self, url, **kwargs):
-        url = "https://cdn.contentstack.io/v3{}".format(url)
+        url = f"https://cdn.contentstack.io/v3{url}"
 
         self._parsed = self.get(url, **kwargs).json()
 

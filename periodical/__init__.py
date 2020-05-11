@@ -43,9 +43,19 @@ class BaseToMobi:
 
         for idx, x in enumerate(self.context["articles"]):
             x["idx"] = idx
+
+            def image_cb(m):
+                url = self.handle_image(m.group(1))
+                return f'<img src="{url}" width="50%">'
+
+            x["body"] = re.sub(r'<img [^>]*src="([^"]+)"([^>]+)>', image_cb, x["body"])
+
+            x["body"] = re.sub(r"<iframe[^>]*>", "", x["body"])
+
+            x["word_count"] = len(x["body"].split(" "))
             x["body"] = widont(x["body"])
 
-        t = tempfile.mkdtemp(prefix="{}-".format(self.PREFIX))
+        t = tempfile.mkdtemp(prefix=f"{self.PREFIX}-")
 
         try:
             self.generate_mobi(t)
@@ -54,7 +64,7 @@ class BaseToMobi:
                 self.log.info("Keeping HTML in %s/index.html", t)
                 self.log.debug("Opening %s/index.html with xdg-open", t)
                 try:
-                    subprocess.call(("xdg-open", "{}/index.html".format(t)))
+                    subprocess.call(("xdg-open", f"{t}/index.html"))
                 except FileNotFoundError:
                     pass
             else:
@@ -67,7 +77,7 @@ class BaseToMobi:
 
         assert self.context[
             "articles"
-        ], "No articles downloaded; please check {}".format(self.BASE_URL)
+        ], f"No articles downloaded; please check {self.BASE_URL}"
 
         template_dir = os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "templates"
@@ -86,7 +96,7 @@ class BaseToMobi:
 
         # Download images
         for idx, x in enumerate(self.context["images"]):
-            self.save_image_to(x, os.path.join(tempdir, "{}.jpg".format(idx)))
+            self.save_image_to(x, os.path.join(tempdir, f"{idx}.jpg"))
 
         for x in ("index.html", "toc.html", "style.css"):
             val = env.get_template(x).render(**self.context)

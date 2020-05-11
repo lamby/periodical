@@ -59,6 +59,8 @@
       <h4>{{ article.author }}</h4>
     {% endif %}
 
+    <p><em>({{ article.word_count }} words)</em></p>
+
     {% if article.hero_image %}
       <p><img src="{{ article.hero_image }}" width="45%"></p>
     {% endif %}
