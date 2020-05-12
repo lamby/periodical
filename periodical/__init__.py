@@ -48,11 +48,12 @@ class BaseToMobi:
                 url = self.handle_image(m.group(1))
                 return f'<img src="{url}" width="50%">'
 
+            x["body"] = re.sub(r"<iframe[^>]*>", "", x["body"])
             x["body"] = re.sub(r'<img [^>]*src="([^"]+)"([^>]+)>', image_cb, x["body"])
 
-            x["body"] = re.sub(r"<iframe[^>]*>", "", x["body"])
+            num_words = len(x["body"].split(" "))
+            x["num_words"] = f"{num_words:,}"
 
-            x["word_count"] = len(x["body"].split(" "))
             x["body"] = widont(x["body"])
 
         t = tempfile.mkdtemp(prefix=f"{self.PREFIX}-")

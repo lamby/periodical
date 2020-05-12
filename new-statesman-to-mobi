@@ -84,6 +84,8 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             subsection = editors_note
 
         byline = root.cssselect("meta[name=abstract]")[0].attrib["content"].strip()
+        if title == "Letters":
+            byline = ""
 
         author = root.cssselect(".author-byline")[0].text_content()
         author = author.strip()
@@ -108,6 +110,9 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
         # New Statesman specific
         body = re.sub(r">\*\*+<", "><hr/><", body)
+        def metadata_cb(m):
+            return f"{m.group(2)}{m.group(1)}{m.group(3)}"
+        body = re.sub(r"(.*)(<p>[\s\n]+<strong>.*?)(</div>)", metadata_cb, body, flags=re.DOTALL)
 
         self.context["articles"].append(
             {
