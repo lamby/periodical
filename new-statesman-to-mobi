@@ -112,7 +112,7 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
         ).decode("utf-8")
 
         # New Statesman specific
-        body = re.sub(r">\*\*+<", "><hr/><", body)
+        body = re.sub(r"\*\*+<", "<hr/><", body)
 
         def metadata_cb(m):
             return f"{m.group(2)}{m.group(1)}{m.group(3)}"
