@@ -113,9 +113,13 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
         # New Statesman specific
         body = re.sub(r">\*\*+<", "><hr/><", body)
+
         def metadata_cb(m):
             return f"{m.group(2)}{m.group(1)}{m.group(3)}"
-        body = re.sub(r"(.*)(<p>[\s\n]+<strong>.*?)(</div>)", metadata_cb, body, flags=re.DOTALL)
+
+        body = re.sub(
+            r"(.*)(<p>[\s\n]+<strong>.*?)(</div>)", metadata_cb, body, flags=re.DOTALL
+        )
 
         self.context["articles"].append(
             {
