@@ -99,7 +99,10 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
         )
 
         if subsection in {"Critics", "Backpages"}:
-            subsection = root.cssselect(".article-category a")[0].text_content()
+            try:
+                subsection = root.cssselect(".article-category a")[0].text_content()
+            except IndexError:
+                pass
 
         if subsection == "Q&A":
             title = title.replace(" Q&A:", ":")
