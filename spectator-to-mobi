@@ -208,9 +208,6 @@ class SpectatorToMobi(periodical.BaseToMobi):
         for x in reversed(data["books_arts"]):
             body = f"<p><em>{x['books_title']}</em> {x['books_author']}</p>{body}"
 
-        for pattern, repl in ((r"\s*CSH</p>", ""),):
-            body = re.sub(pattern, repl, body)
-
         data = {
             "title": title,
             "byline": byline,
@@ -222,6 +219,12 @@ class SpectatorToMobi(periodical.BaseToMobi):
         }
 
         self.context["articles"].append(data)
+
+    def handle_body(self, body):
+        for pattern, repl in ((r"\s*CSH</p>", ""),):
+            body = re.sub(pattern, repl, body)
+
+        return body
 
     def parse(self, url, **kwargs):
         url = f"https://cdn.contentstack.io/v3{url}"

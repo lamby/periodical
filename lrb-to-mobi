@@ -98,11 +98,6 @@ class LRBToMobi(periodical.BaseToMobi):
 
             body = f"{metadata}<br>{body}"
 
-        # LRB-specific
-        body = body.replace("<h2 ", "<h3 ")
-        body = body.replace('a href="/', f'a href="{self.BASE_URL}/')
-        body = body.replace('<img src="" data-appsrc="/', f'<img src="{self.BASE_URL}/')
-
         self.context["articles"].append(
             {
                 "url": url,
@@ -113,6 +108,13 @@ class LRBToMobi(periodical.BaseToMobi):
                 "body": body,
             },
         )
+
+    def handle_body(self, body):
+        body = body.replace("<h2 ", "<h3 ")
+        body = body.replace('a href="/', f'a href="{self.BASE_URL}/')
+        body = body.replace('<img src="" data-appsrc="/', f'<img src="{self.BASE_URL}/')
+
+        return body
 
 
 if __name__ == "__main__":

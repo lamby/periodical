@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import json
 import time
 import jinja2
 import shutil
@@ -43,6 +42,8 @@ class BaseToMobi:
 
         for idx, x in enumerate(self.context["articles"]):
             x["idx"] = idx
+
+            x["body"] = self.handle_body(x["body"])
 
             def image_cb(m):
                 url = self.handle_image(m.group(1))
@@ -190,3 +191,6 @@ class BaseToMobi:
             pickle.dump(response, f)
 
         return response
+
+    def handle_body(self, body):
+        return body

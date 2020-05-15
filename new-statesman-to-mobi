@@ -111,16 +111,6 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             root.cssselect("div.content .field-name-body .field-items")[0]
         ).decode("utf-8")
 
-        # New Statesman specific
-        body = re.sub(r"\*\*+<", "<hr/><", body)
-
-        def metadata_cb(m):
-            return f"{m.group(2)}{m.group(1)}{m.group(3)}"
-
-        body = re.sub(
-            r"(.*)(<p>[\s\n]+<strong>.*?)(</div>)", metadata_cb, body, flags=re.DOTALL
-        )
-
         self.context["articles"].append(
             {
                 "url": url,
@@ -132,6 +122,18 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
                 "body": body,
             },
         )
+
+    def handle_body(self, body):
+        body = re.sub(r"\*\*+<", "<hr/><", body)
+
+        def metadata_cb(m):
+            return f"{m.group(2)}{m.group(1)}{m.group(3)}"
+
+        body = re.sub(
+            r"(.*)(<p>[\s\n]+<strong>.*?)(</div>)", metadata_cb, body, flags=re.DOTALL
+        )
+
+        return body
 
 
 if __name__ == "__main__":
