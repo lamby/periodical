@@ -78,10 +78,8 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             title = title.replace("Leader: ", "")
             subsection = "Leader"
 
-        editors_note = "Editor's Note"
-        if title.startswith(f"{editors_note}: "):
-            title = title[len(editors_note) + 2 :]
-            subsection = editors_note
+        if re.search(r"^Editor.s Note: ", title):
+            subsection, _, title = title.partition(": ")
 
         byline = root.cssselect("meta[name=abstract]")[0].attrib["content"].strip()
         if title == "Letters":
@@ -104,8 +102,11 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             except IndexError:
                 pass
 
-        if subsection == "Q&A":
-            title = title.replace(" Q&A:", ":")
+        m = re.search(r"^(?P<author>.+) (?P<subsection>Q&A): (?P<title>.+)", title)
+        if m is not None:
+            title = m.group('title')
+            author = m.group('author')
+            subsection = m.group('subsection')
 
         body = etree.tostring(
             root.cssselect("div.content .field-name-body .field-items")[0]
