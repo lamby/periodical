@@ -112,6 +112,25 @@ class LRBToMobi(periodical.BaseToMobi):
     def handle_body(self, body):
         body = body.replace("<h2", "<h3")
         body = body.replace("</h2>", "</h3>")
+
+        footnotes = []
+
+        def footnote_cb(m):
+            url = f"{self.BASE_URL}{m.group('url')}"
+            footnotes.append(self.get(url).json()["footnote"])
+            return f" [{len(footnotes)}] "
+
+        body = re.sub(
+            r'<span class="footnote-link"><a href="(?P<url>[^"]+)">[^<]+</a></span>',
+            footnote_cb,
+            body,
+        )
+
+        if footnotes:
+            body += f"<br>"
+        for idx, x in enumerate(footnotes):
+            body += f"<blockquote>[{idx + 1}] {x}</blockquote>"
+
         body = body.replace('a href="/', f'a href="{self.BASE_URL}/')
         body = body.replace('<img src="" data-appsrc="/', f'<img src="{self.BASE_URL}/')
 
