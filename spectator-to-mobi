@@ -221,7 +221,7 @@ class SpectatorToMobi(periodical.BaseToMobi):
         self.context["articles"].append(data)
 
     def handle_body(self, body):
-        for pattern, repl in ((r"\s*CSH</p>", ""),):
+        for pattern, repl in ((r"\s*CSH\s*</p>", ""),):
             body = re.sub(pattern, repl, body)
 
         return body
