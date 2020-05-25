@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<package unique-identifier="uid" xmlns:opf="http://www.idpf.org/2007/opf" xmlns:asd="http://www.idpf.org/asdfaf">
+  <metadata>
+    <dc-metadata  xmlns:dc="http://purl.org/metadata/dublin_core" xmlns:oebpackage="http://openebook.org/namespaces/oeb-package/1.0/">
+      <dc:Title>{{ title }} ({{ date }})</dc:Title>
+      <dc:Language>en</dc:Language>
+      <dc:Creator>{{ title }}</dc:Creator>
+      <dc:Copyrights>{{ title }}</dc:Copyrights>
+      <dc:Publisher>Publisher</dc:Publisher>
+      <x-metadata>
+        <EmbeddedCover>{{ tempdir }}/cover.jpg</EmbeddedCover>
+      </x-metadata>
+    </dc-metadata>
+  </metadata>
+  <manifest>
+    <item id="content" media-type="text/x-oeb1-document" href="{{ tempdir }}/index.html"></item>
+    <item id="ncx" media-type="application/x-dtbncx+xml" href="{{ tempdir }}/toc.ncx"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="content"/>
+  </spine>
+  <guide>
+    <reference type="toc" title="Table of Contents" href="{{ tempdir }}/index.html#toc"/>
+    <reference type="text" title="Book" href="{{ tempdir }}/index.html"/>
+  </guide>
+</package>
+

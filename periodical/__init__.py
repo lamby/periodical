@@ -100,7 +100,7 @@ class BaseToMobi:
         for idx, x in enumerate(self.context["images"]):
             self.save_image_to(x, os.path.join(tempdir, f"{idx}.jpg"))
 
-        for x in ("index.html", "toc.html", "style.css"):
+        for x in ("index.html", "toc.html", "style.css", "toc.ncx", "book.opf"):
             val = env.get_template(x).render(**self.context)
             with open(os.path.join(tempdir, x), "w") as f:
                 f.write(val)
@@ -111,7 +111,7 @@ class BaseToMobi:
             stdout, stderr = None, None
 
         subprocess.call(
-            ("kindlegen/kindlegen", "-verbose", os.path.join(tempdir, "index.html"),),
+            ("kindlegen/kindlegen", "-verbose", os.path.join(tempdir, "book.opf"),),
             stdout=stdout,
             stderr=stderr,
         )
@@ -123,7 +123,7 @@ class BaseToMobi:
 
         self.log.info("Saving output to %s", self.filename)
 
-        shutil.move(os.path.join(tempdir, "index.mobi"), self.filename)
+        shutil.move(os.path.join(tempdir, "book.mobi"), self.filename)
 
     def handle_image(self, url):
         self.context["images"].append(url)
