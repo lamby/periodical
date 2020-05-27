@@ -57,9 +57,11 @@ class LRBToMobi(periodical.BaseToMobi):
         root = html.fromstring(base)
 
         # Parse date
-        self.context["date"] = root.find(
-            ".//div[@class='toc-header-holder']//h2"
-        ).text.split(" · ")[-1]
+        for x in ("h1", "h2"):
+            elem = root.find(f".//div[@class='toc-header-holder']//{x}")
+            if elem is not None:
+                self.context["date"] = elem.text.split(" · ")[-1]
+                break
 
         # Parse cover
         self.context["cover"] = "{}{}".format(
