@@ -140,14 +140,14 @@ class BaseToMobi:
                 "convert",
                 target,
                 "-resize",
-                "800x",
+                "400x",
                 "-set",
                 "colorspace",
                 "Gray",
                 "-separate",
                 "-average",
                 "-quality",
-                "60%",
+                "40%",
                 target,
             )
         )
