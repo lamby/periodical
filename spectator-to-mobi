@@ -157,11 +157,6 @@ class SpectatorToMobi(periodical.BaseToMobi):
             "title"
         ]
 
-        try:
-            hero_image = self.handle_image(data["hero_image"][0]["url"])
-        except IndexError:
-            hero_image = None
-
         # Subsection
 
         # Rewrite first
@@ -200,6 +195,12 @@ class SpectatorToMobi(periodical.BaseToMobi):
         # punctuation.
         if re.search(r"[a-z]$", byline or ""):
             byline = f"{byline}."
+
+        # Check images later in case we skipped the whole thing
+        try:
+            hero_image = self.handle_image(data["hero_image"][0]["url"])
+        except IndexError:
+            hero_image = None
 
         # Body
         body = data["text_body"]
