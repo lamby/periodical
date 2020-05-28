@@ -51,10 +51,6 @@ class BaseToMobi:
 
             x["body"] = re.sub(r"<iframe[^>]*>", "", x["body"])
             x["body"] = re.sub(r'<img [^>]*src="([^"]+)"([^>]+)>', image_cb, x["body"])
-
-            num_words = len(x["body"].split(" "))
-            x["num_words"] = f"{num_words:,}"
-
             x["body"] = widont(x["body"])
 
         t = tempfile.mkdtemp(prefix=f"{self.PREFIX}-")
