@@ -49,6 +49,7 @@ class BaseToMobi:
                 url = self.handle_image(m.group(1))
                 return f'<img src="{url}" width="50%">'
 
+            x["body"] = re.sub(r"--", "&ndash;", x["body"])
             x["body"] = re.sub(r"<iframe[^>]*>", "", x["body"])
             x["body"] = re.sub(r'<img [^>]*src="([^"]+)"([^>]+)>', image_cb, x["body"])
             x["body"] = widont(x["body"])
