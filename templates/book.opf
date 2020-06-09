@@ -13,6 +13,7 @@
     </dc-metadata>
   </metadata>
   <manifest>
+    <item id="cover" properties="cover-image" href="{{ tempdir }}/cover.jpg" media-type="image/jpeg" />
     <item id="content" media-type="text/x-oeb1-document" href="{{ tempdir }}/index.html"></item>
     <item id="ncx" media-type="application/x-dtbncx+xml" href="{{ tempdir }}/toc.ncx"/>
   </manifest>
