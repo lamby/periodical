@@ -78,6 +78,9 @@ class LRBToMobi(periodical.BaseToMobi):
         url = f"{self.BASE_URL}{elem.attrib['href']}"
 
         base = self.get(url).content
+
+        # Strip out copyright headers
+        base = re.sub(r"<!--.*?-->", "", base.decode("utf-8"))
         root = html.fromstring(base)
 
         author = elem.cssselect("h3")[0].text.strip()
