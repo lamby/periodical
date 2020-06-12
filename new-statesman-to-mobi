@@ -104,9 +104,9 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
         m = re.search(r"^(?P<author>.+) (?P<subsection>Q&A): (?P<title>.+)", title)
         if m is not None:
-            title = m.group('title')
-            author = m.group('author')
-            subsection = m.group('subsection')
+            title = m.group("title")
+            author = m.group("author")
+            subsection = m.group("subsection")
 
         body = etree.tostring(
             root.cssselect("div.content .field-name-body .field-items")[0]
@@ -126,9 +126,17 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
 
     def handle_body(self, body):
         body = re.sub(r"\*\*+<", "<hr/><", body)
+        body = re.sub(r"\s*Credit:[^<]+</em>", "</em>", body)
+        body = re.sub(
+            r"\s+<strong><em>\[[^\]]+\]</em></strong>\s+", "", body, flags=re.DOTALL
+        )
 
         def metadata_cb(m):
             return f"{m.group(2)}{m.group(1)}{m.group(3)}"
+
+        body = re.sub(
+            r"(.*)(<p>[\s\n]+<strong>.*?)(</div>)", metadata_cb, body, flags=re.DOTALL
+        )
 
         return body
 
