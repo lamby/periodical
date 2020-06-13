@@ -108,6 +108,9 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             author = m.group("author")
             subsection = m.group("subsection")
 
+        if subsection == "UK":
+            subsection = title
+
         body = etree.tostring(
             root.cssselect("div.content .field-name-body .field-items")[0]
         ).decode("utf-8")
