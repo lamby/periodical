@@ -16,14 +16,18 @@ from xdg.BaseDirectory import save_cache_path
 
 
 re_widont_html = re.compile(
-    r"([^<>\s])\s+([^<>\s]+\s*)(</?(?:address|blockquote|br|dd|div|dt|fieldset|form|h[1-6]|li|noscript|p|td|th)[^>]*>|$)",
+    r"([^<>\s]+)\s+([^<>\s]+\s*)(</?(?:address|blockquote|br|dd|div|dt|fieldset|form|h[1-6]|li|noscript|p|td|th)[^>]*>|$)",
     re.IGNORECASE,
 )
 
 
 def widont(txt):
     def cb_widont(m):
-        return "{}&nbsp;{}{}".format(*m.groups())
+        a, b, closing_tag = m.groups()
+        # Don't break things that are too long for narrow columns.
+        if len(a) + len(b) > 17:
+            return m.group(0)
+        return f"{a}&nbsp;{b}{closing_tag}"
 
     return re_widont_html.sub(cb_widont, txt)
 
