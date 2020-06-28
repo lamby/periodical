@@ -74,9 +74,11 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
         if title.startswith("Letter of the week: "):
             title = "Letters"
             subsection = title
-        if title.startswith("Leader: "):
-            title = title.replace("Leader: ", "")
-            subsection = "Leader"
+
+        for x in {"Leader", "First Thoughts"}:
+            if title.startswith(f"{x}: "):
+                title = title.replace(f"{x}: ", "")
+                subsection = x
 
         if re.search(r"^Editor.s Note: ", title):
             subsection, _, title = title.partition(": ")
