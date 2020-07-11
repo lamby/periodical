@@ -132,8 +132,13 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
     def handle_body(self, body):
         body = re.sub(r"\*\*+<", "<hr/><", body)
         body = re.sub(r"\s*Credit:[^<]+</em>", "</em>", body)
+
+        # Drop internal adverts
         body = re.sub(
             r"\s+<strong><em>\[[^\]]+\]</em></strong>\s+", "", body, flags=re.DOTALL
+        )
+        body = re.sub(
+            r"\s+<em><strong>\[[^\]]+\]</strong></em>\s+", "", body, flags=re.DOTALL
         )
 
         return body
