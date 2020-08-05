@@ -119,14 +119,18 @@ class LRBToMobi(periodical.BaseToMobi):
         body = body.replace("</h2>", "</h3>")
 
         footnotes = []
-
         def footnote_cb(m):
             url = f"{self.BASE_URL}{m.group('url')}"
-            footnotes.append(self.get(url).json()["footnote"])
+
+            if m.group("text") == "*":
+                footnotes.append(url)
+            else:
+                footnotes.append(self.get(url).json()["footnote"])
+
             return f" [{len(footnotes)}] "
 
         body = re.sub(
-            r'<span class="footnote-link"><a href="(?P<url>[^"]+)">[^<]+</a></span>',
+            r'<span class="footnote-link"><a href="(?P<url>[^"]+)">(?P<text>[^<]+)</a></span>',
             footnote_cb,
             body,
         )
