@@ -141,6 +141,9 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
             r"\s+<em><strong>\[[^\]]+\]</strong></em>\s+", "", body, flags=re.DOTALL
         )
 
+        # Drop paragraph styles
+        body = re.sub(r'<p style="[^"]+', "<p ", body)
+
         return body
 
 
