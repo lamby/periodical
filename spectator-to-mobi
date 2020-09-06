@@ -54,6 +54,7 @@ CONFIG = (
     {"name": "The turf", "exclude": True},
     {"name": "Theatre", "exclude": True},
     {"name": "Wild life", "exclude": True},
+    {"name": "From the archives", "exclude": True},
 )
 
 GENERIC_AUTHORS = {"The Spectator", "Doc"}
