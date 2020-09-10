@@ -127,6 +127,9 @@ class BaseToMobi:
         shutil.move(os.path.join(tempdir, "book.mobi"), self.filename)
 
     def handle_image(self, url):
+        if not url.startswith('http'):
+            return
+
         self.context["images"].append(url)
 
         return "{}.jpg".format(len(self.context["images"]) - 1)
