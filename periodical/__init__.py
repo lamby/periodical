@@ -99,7 +99,10 @@ class BaseToMobi:
 
         # Download images
         for idx, x in enumerate(self.context["images"]):
-            self.save_image_to(x, os.path.join(tempdir, f"{idx}.jpg"))
+            try:
+                self.save_image_to(x, os.path.join(tempdir, f"{idx}.jpg"))
+            except Exception as exc:
+                self.log.exception(f"Exception when downloading {x}; ignoring.")
 
         for x in ("index.html", "toc.html", "style.css", "toc.ncx", "book.opf"):
             val = env.get_template(x).render(**self.context)
