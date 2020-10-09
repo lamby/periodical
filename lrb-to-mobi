@@ -36,7 +36,10 @@ class LRBToMobi(periodical.BaseToMobi):
     BASE_URL = "https://lrb.co.uk"
 
     def __init__(
-        self, filename, keep_html, verbosity,
+        self,
+        filename,
+        keep_html,
+        verbosity,
     ):
         super().__init__()
 
@@ -119,6 +122,7 @@ class LRBToMobi(periodical.BaseToMobi):
         body = body.replace("</h2>", "</h3>")
 
         footnotes = []
+
         def footnote_cb(m):
             url = f"{self.BASE_URL}{m.group('url')}"
 

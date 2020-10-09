@@ -115,7 +115,11 @@ class BaseToMobi:
             stdout, stderr = None, None
 
         subprocess.call(
-            ("kindlegen/kindlegen", "-verbose", os.path.join(tempdir, "book.opf"),),
+            (
+                "kindlegen/kindlegen",
+                "-verbose",
+                os.path.join(tempdir, "book.opf"),
+            ),
             stdout=stdout,
             stderr=stderr,
         )
@@ -130,7 +134,7 @@ class BaseToMobi:
         shutil.move(os.path.join(tempdir, "book.mobi"), self.filename)
 
     def handle_image(self, url):
-        if not url.startswith('http'):
+        if not url.startswith("http"):
             return
 
         self.context["images"].append(url)

@@ -36,7 +36,10 @@ class NewStatesmanToMobi(periodical.BaseToMobi):
     BASE_URL = "https://www.newstatesman.com"
 
     def __init__(
-        self, filename, keep_html, verbosity,
+        self,
+        filename,
+        keep_html,
+        verbosity,
     ):
         super().__init__()
 

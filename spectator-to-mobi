@@ -95,7 +95,12 @@ class SpectatorToMobi(periodical.BaseToMobi):
     BASE_URL = "https://spectator.co.uk"
 
     def __init__(
-        self, api_key, access_token, filename, keep_html, verbosity,
+        self,
+        api_key,
+        access_token,
+        filename,
+        keep_html,
+        verbosity,
     ):
         super().__init__()
 
