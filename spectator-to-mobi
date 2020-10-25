@@ -25,7 +25,7 @@ CONFIG = (
     {"name": "Books"},
     {"name": "Music"},
     {"name": "Real life"},
-    {"name": "High life"},
+    {"name": "High life", "exclude": True},
     {"name": "Low life"},
     {"name": "Radio"},
     {"name": "Television"},
