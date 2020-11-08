@@ -32,6 +32,7 @@ CONFIG = (
     {"name": "Cinema"},
     {"name": "Film"},
     {"name": "Miscellaneous", "exclude": "True"},
+    {"name": "Classical", "exclude": "True"},
     {"name": "Spectator Sport", "exclude": "True"},
     {"name": "No sacred cows"},
     {"name": "The Wiki Man"},
